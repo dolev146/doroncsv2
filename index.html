@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Csv files JS</title>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js" defer></script>
+
+    <style type="text/css">
+        .chartBox {
+            width: 700px;
+            height: 100%;
+            position: relative;
+        }
+
+        #myChart {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+
+</head>
+
+<body>
+
+
+    <input type="file" id="uploadfile" accept=".csv">
+    <button id="uploadconfirm">Upload file</button>
+    <div class="chartBox">
+        <canvas id="myChart"></canvas>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.1/dist/chart.umd.min.js"></script>
+    <script>
+        let ctx = document.getElementById('myChart');
+        let myChart;
+
+
+        let csvData = [];
+        const uploadfile = document.getElementById('uploadfile');
+        const uploadconfirm = document.getElementById('uploadconfirm');
+        uploadconfirm.addEventListener('click', () => {
+            const file = uploadfile.files[0];
+            const results = Papa.parse(file, {
+                header: true, download: true, skipEmptyLines: true, complete: function (results) {
+                    console.log(results);
+                    // loop over the results and push them into the csvData array as objects of the form
+                    // {DateTime: "DateTime", height "height"}
+                    results.data.forEach(element => {
+                        csvData.push({
+                            DateTime: element.DateTime,
+                            height: element['Historian.TZINOROT.LD.SPI1.ROU1.Status.Act_Speed1.Interpolated']
+                        });
+                    });
+
+                    // log the csvData array to the console
+                    console.log(csvData);
+                    // loop over the csvData array and every time the height is close to 0 by 0.1,
+                    // log the DateTime to the console
+                    // choose multiple centers values that close to zero that their DateTime differs by 10 minutes
+                    // and save the elements in an array
+                    let closeToZero = [];
+                    csvData.forEach(element => {
+                        if (element.height > 0 && element.height < 0.1) {
+                            closeToZero.push(element);
+                        }
+                    });
+                    console.log(closeToZero);
+
+                    // i need to choose one center element for each values
+                    // that close to zero and close to each other by 10 minutes
+                    // and save the elements in an array
+                    // choose one center!
+                    let center = [];
+                    for (let i = 0; i < closeToZero.length; i++) {
+                        if (i === 0) {
+                            center.push(closeToZero[i]);
+                        } else {
+                            // closeToZero[i].DateTime - closeToZero[i - 1].DateTime > 10
+                            // calculate the difference after parsing the date time
+                            // and convert it to minutes
+                            // and compare it to 10
+                            // parse the DateTime
+                            let date1 = new Date(closeToZero[i].DateTime);
+                            let date2 = new Date(closeToZero[i - 1].DateTime);
+                            if (
+                                Math.abs(date1.getTime() - date2.getTime()) / 60000 > 10
+                            ) {
+                                center.push(closeToZero[i]);
+                            }
+                        }
+                    }
+                    console.log(center);
+
+                    // show the elements on the screen
+                    let html = '';
+                    center.forEach(element => {
+                        html += `<p>${element.DateTime} |  ${element.height}</p>`;
+                    });
+                    document.body.innerHTML += html;
+
+                    // Setup block
+                    const data = {
+                        labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+                        datasets: [{
+                            label: '# of Votes',
+                            data: [12, 19, 3, 5, 2, 3],
+                            borderWidth: 1
+                        }]
+                    }
+
+                    // Config block
+
+                    // Init Render block
+
+
+                    myChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+
+                    // // show the elements on the screen
+                    // let html = '';
+                    // closeToZero.forEach(element => {
+                    //     html += `<p>${element.DateTime} |  ${element.height}</p>`;
+                    // });
+                    // document.body.innerHTML += html;
+
+
+                }
+            });
+        })
+
+
+
+
+    </script>
+
+</body>
+
+</html>
