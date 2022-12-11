@@ -47,6 +47,8 @@
             const results = Papa.parse(file, {
                 header: true, download: true, skipEmptyLines: true, complete: function (results) {
                     console.log(results);
+                    // print out the results json as string
+
                     // loop over the results and push them into the csvData array as objects of the form
                     // {DateTime: "DateTime", height "height"}
                     results.data.forEach(element => {
@@ -58,6 +60,7 @@
 
                     // log the csvData array to the console
                     console.log(csvData);
+                    console.log(JSON.stringify(csvData));
                     // loop over the csvData array and every time the height is close to 0 by 0.1,
                     // log the DateTime to the console
                     // choose multiple centers values that close to zero that their DateTime differs by 10 minutes
@@ -68,6 +71,8 @@
                             closeToZero.push(element);
                         }
                     });
+                    console.log("close to zero")
+                    console.log(JSON.stringify(closeToZero));
                     console.log(closeToZero);
 
                     // i need to choose one center element for each values
@@ -95,48 +100,33 @@
                     }
                     console.log(center);
 
-                    // show the elements on the screen
-                    let html = '';
-                    center.forEach(element => {
-                        html += `<p>${element.DateTime} |  ${element.height}</p>`;
-                    });
-                    document.body.innerHTML += html;
+                    // now just calculate the time diffrance between the Two consecutive indexes in center
+                    // loop over the center array and calculate the time
 
-                    // Setup block
-                    const data = {
-                        labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-                        datasets: [{
-                            label: '# of Votes',
-                            data: [12, 19, 3, 5, 2, 3],
-                            borderWidth: 1
-                        }]
+                    let time = [];
+                    for (let i = 0; i < center.length; i++) {
+                        if (i === 0) {
+                            time.push(0);
+                        } else {
+                            // closeToZero[i].DateTime - closeToZero[i - 1].DateTime > 10
+                            // calculate the difference after parsing the date time
+                            // and convert it to minutes
+                            // and compare it to 10
+                            // parse the DateTime
+                            let date1 = new Date(center[i].DateTime);
+                            let date2 = new Date(center[i - 1].DateTime);
+                            time.push(Math.abs(date1.getTime() - date2.getTime()) / 60000);
+                        }
                     }
 
-                    // Config block
+                    console.log(time);
 
-                    // Init Render block
+                    // add the time to html page
+                    let timeDiv = document.createElement('div');
+                    timeDiv.innerHTML = time;
+                    document.body.appendChild(timeDiv);
+                    
 
-
-                    myChart = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-
-                        },
-                        options: {
-                            scales: {
-                                y: {
-                                    beginAtZero: true
-                                }
-                            }
-                        }
-                    });
-
-                    // // show the elements on the screen
-                    // let html = '';
-                    // closeToZero.forEach(element => {
-                    //     html += `<p>${element.DateTime} |  ${element.height}</p>`;
-                    // });
-                    // document.body.innerHTML += html;
 
 
                 }
